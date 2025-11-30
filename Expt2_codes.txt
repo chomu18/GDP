@@ -1,0 +1,332 @@
+//Expt 2A : To design and implement a four-way traf c light
+control
+
+fi
+
+fi
+
+fi
+
+#include <TM1637Display.h>
+// TM1637 connections
+#de ne CLK A4
+#de ne DIO A5
+TM1637Display display(CLK, DIO);
+// LED pins for each direction (Red, Yellow, Green)
+int RED[4]
+= {2, 5, 8, 11};
+int YELLOW[4] = {3, 6, 9, 12};
+int GREEN[4] = {4, 7, 10, 13};
+// Countdown times
+int greenTime = 10;
+int yellowTime = 3;
+// Green signal seconds
+// Yellow signal seconds
+// ----------------- Setup ----------------void setup() {
+// Set all LED pins as OUTPUT
+for (int i = 0; i < 4; i++) {
+pinMode(RED[i], OUTPUT);
+pinMode(YELLOW[i], OUTPUT);
+pinMode(GREEN[i], OUTPUT);
+}
+// Initialize Display
+display.setBrightness(0x0f); // Max brightness
+}
+// ----------------- Countdown Function ----------------void countdown(int seconds)
+{
+for (int t = seconds; t > 0; t--) {
+int mins = t / 60;
+int secs = t % 60;
+int timeVal = mins * 100 + secs;
+display.showNumberDecEx(timeVal, 0x40, true); // Show as MM:SS
+delay(1000);
+}
+display.showNumberDecEx(0, 0x40, true); // Show 00:00
+}
+// ----------------- Main Loop ----------------void loop() {
+for (int i = 0; i < 4; i++) {
+// Step 1: Set all signals to Red
+for (int j = 0; j < 4; j++) {
+digitalWrite(RED[j], HIGH);
+digitalWrite(YELLOW[j], LOW);
+digitalWrite(GREEN[j], LOW);
+}// Step 2: Current direction → Green
+digitalWrite(RED[i], LOW);
+digitalWrite(GREEN[i], HIGH);
+countdown(greenTime);
+// Step 3: Yellow phase
+digitalWrite(GREEN[i], LOW);
+digitalWrite(YELLOW[i], HIGH);
+countdown(yellowTime);
+
+// Step 4: Back to Red
+digitalWrite(YELLOW[i], LOW);
+digitalWrite(RED[i], HIGH);
+}
+}
+
+//Expt 2B : Interfacing a 16x2 LCD to Arduino UNO/Nano Using
+I2C Protocol
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+// Set the LCD address to 0x27 or 0x3F depending on your module
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Use 0x3F if 0x27 doesn't work
+void setup() {
+lcd.init();
+lcd.backlight();
+lcd.clear();
+// Initialize the LCD
+// Turn on the backlight
+// Clear the display
+// Display static message
+lcd.setCursor(0, 0);
+// First row, rst column
+lcd.print("PRAGATI PATIL"); // Change to your name
+lcd.setCursor(0, 1);
+// Second row, rst column
+lcd.print("GR NO.: 22311478"); // Change to your GR number
+}
+void loop() {
+// Nothing needed here for static display
+}
+
+//Expt 2C: Interfacing an OLED Graphic Display Module with
+Arduino
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+#include <Wire.h> #include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+// Step 3: De ne width and height
+#de ne SCREEN_WIDTH 128#de ne SCREEN_HEIGHT 64 // Use 32 if you're using a 128x32
+OLED
+// Step 4: Create display object using I2C address 0x3C
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+void setup() {
+// Step 5: Initialize the display
+if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+for (;;); // Don't proceed if OLED init fails
+}
+// Step 6: Clear the display buffer
+display.clearDisplay();
+
+// Step 7: Display simple text
+display.setTextSize(1);
+display.setTextColor(SSD1306_WHITE);
+display.setCursor(0, 0);
+display.println("Hello OLED!");
+// Step 8: Display inverted text
+display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+display.println("Inverted Text");
+// Step 9: Change font size
+display.setTextSize(2);
+display.setTextColor(SSD1306_WHITE);
+display.println("BIG!");
+// Step 10: Display numbers
+int decNum = 123;
+int hexNum = 255;
+display.setTextSize(1);
+display.print("Dec: ");
+display.println(decNum);
+display.print("Hex: ");
+display.println(hexNum, HEX);
+display.display();
+delay(3000);
+// Step 11: Scroll horizontally
+display.startscrollleft(0x00, 0x0F); // Full width
+delay(3000);
+display.stopscroll();
+display.startscrollright(0x00, 0x0F); // Full width
+delay(3000);
+display.stopscroll();
+// Step 11b: Scroll part of screen
+display.startscrolldiagright(0x00, 0x07); // Diagonal scroll
+delay(3000);
+display.stopscroll();
+// Step 12: Display a simple bitmap image
+display.clearDisplay();
+static const unsigned char PROGMEM logo_bmp[] = {
+0x18,0x3C,0x7E,0xFF,0xFF,0x7E,0x3C,0x18
+};
+display.drawBitmap(60, 20, logo_bmp, 8, 8, SSD1306_WHITE);display.display();
+delay(2000);
+// Step 13: Draw patterns
+display.clearDisplay();
+display.drawRect(10, 10, 50, 30, SSD1306_WHITE);
+display.drawCircle(90, 30, 15, SSD1306_WHITE);
+display.drawLine(0, 0, 127, 63, SSD1306_WHITE);
+display.display();
+// Rectangle
+// Circle
+// Diagonal line
+}
+void loop() {
+// Static content
+}
+
+//Expt 2D: Interfacing a 2.4-inch TFT Touchscreen Shield with
+Arduino Uno
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+fi
+
+fl
+
+#include <MCUFRIEND_kbv.h>
+#include <TouchScreen.h>
+MCUFRIEND_kbv tft;
+// Touchscreen pins (adjust if your shield silk labels differ)
+#de ne YP A1
+#de ne XM A2
+#de ne YM 7
+#de ne XP 6
+#de ne TS_MINX 120
+#de ne TS_MAXX 900
+#de ne TS_MINY 70
+#de ne TS_MAXY 920
+#de ne MINPRESSURE 10
+#de ne MAXPRESSURE 1000
+TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
+// Colors
+#de ne BLACK
+#de ne WHITE
+0x0000
+0xFFFF
+const int NP = 12; // number of particles
+struct Particle {
+int x, y;
+int vx, vy;
+uint16_t color;
+};
+Particle part[NP];// Spirograph brush state
+int brushX = -1, brushY = -1;
+int hue = 0;
+uint16_t HSVtoRGB(int h);
+// Setup UI and launch particles
+void setup() {
+Serial.begin(9600);
+uint16_t ID = tft.readID();
+tft.begin(ID);
+tft.setRotation(1); // landscape
+tft. llScreen(BLACK);
+// Initial display message
+tft.setTextColor(WHITE);
+tft.setTextSize(2);
+tft.setCursor(10, 10);
+tft.print("Touch/drag for\n CRAZY EFFECT!");
+// Seed particles at center, random directions/colors
+int xc = tft.width() / 2, yc = tft.height() / 2;
+for (int i = 0; i < NP; i++) {
+part[i].x = xc;
+part[i].y = yc;
+oat angle = 2.0 * PI * i / NP;
+part[i].vx = cos(angle) * (random(3, 5));
+part[i].vy = sin(angle) * (random(3, 5));
+part[i].color = HSVtoRGB((i * 360 / NP) % 360);
+}
+}
+void loop() {
+
+fl
+
+fi
+
+fl
+
+fl
+
+fl
+
+fl
+
+fl
+
+// Animate and draw particles, trails
+for (int i = 0; i < NP; i++) {
+// Draw trail (semi-transparent effect: just don't erase old positions)
+tft. llCircle(part[i].x, part[i].y, 4, part[i].color);
+// Move
+part[i].x += part[i].vx;
+part[i].y += part[i].vy;
+// Bounce on screen boundaries
+if (part[i].x < 4 || part[i].x > tft.width() - 4) part[i].vx = -part[i].vx;
+if (part[i].y < 4 || part[i].y > tft.height() - 4) part[i].vy = -part[i].vy;
+}
+// Touchscreen interaction
+TSPoint p = ts.getPoint();
+pinMode(XM, OUTPUT);
+pinMode(YP, OUTPUT);
+if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {
+int tx = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
+int ty = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
+// "Explosion": send particles outwards from touch
+int xc = tx, yc = ty;
+for (int i = 0; i < NP; i++) { oat angle = 2.0 * PI * i / NP + random(10) / 10.0;
+part[i].x = xc; part[i].y = yc;
+part[i].vx = cos(angle) * (random(4, 10));
+part[i].vy = sin(angle) * (random(4, 10));
+part[i].color = HSVtoRGB(random(360));
+}
+// Rainbow paint brush
+if (brushX != -1) {
+for (int d = 0; d < 8; d++)
+tft.drawLine(brushX, brushY, tx, ty, HSVtoRGB((hue + d * 10) % 360));
+}
+brushX = tx; brushY = ty;
+hue = (hue + 14) % 360;
+} else {
+brushX = brushY = -1; // clear old brush state
+}
+delay(20);
+}
+// HSV to RGB565 converter for rainbow effects
+uint16_t HSVtoRGB(int h) {
+oat s = 1.0, v = 1.0;
+oat c = v * s;
+oat x = c * (1 - abs((h / 60)%2 - 1));
+oat m = v - c;
+oat r, g, b;
+if(h < 60)
+{ r = c, g = x, b = 0; }
+else if(h < 120){ r = x, g = c, b = 0; }
+else if(h < 180){ r = 0, g = c, b = x; }
+else if(h < 240){ r = 0, g = x, b = c; }
+else if(h < 300){ r = x, g = 0, b = c; }
+else
+{ r = c, g = 0, b = x; }
+uint8_t R = (r + m)*31, G = (g + m)*63, B = (b + m)*31;
+return (R << 11) |(G<<5)|B;
+}
+
+

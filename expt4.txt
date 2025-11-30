@@ -1,0 +1,142 @@
+//Expt 4 A: ESP01 WiFi Module and Programming
+//Problem Statement: Interfacing of Inbuilt LED (connected to GPIO2 for ESP-01S)
+//to ESP01S module and program in Embedded C to blink LED for every 1 second delay
+void setup() {
+pinMode(2, OUTPUT);
+}
+void loop()
+{
+digitalWrite(2, LOW);
+delay(1000);
+digitalWrite(2, HIGH);
+delay(1000);
+}
+// GPIO2 is the onboard LED on ESP-01S
+// LED ON (active LOW)
+// Wait 1 second
+// LED OFF
+// Wait 1 second
+//Expt 4 B: ESP01 WiFi Module and Programming
+//Problem Statement: Interfacing of Relay module to ESP01s and controlling the
+applications
+void setup() {
+pinMode(0, OUTPUT);
+}
+// Relay connected to GPIO0
+void loop() {
+digitalWrite(0, LOW); // Turn ON relay (active LOW)
+delay(1000);
+// Wait 1 second
+digitalWrite(0, HIGH); // Turn OFF relay
+delay(1000);
+// Wait 1 second
+}
+//Expt 4 C: ESP01 WiFi Module and Blynk Cloud
+//Problem Statement: Interface ESP01S module with Blynk IoT Cloud to control
+inbuilt LED (GPIO2)
+//and external Relay module (GPIO0) through the Blynk mobile application.
+/************** BLYNK CONFIGURATION **************/
+#define BLYNK_TEMPLATE_ID "TMPL3AS3iCYzQ"
+#define BLYNK_TEMPLATE_NAME "Pragati Patil"
+#define BLYNK_AUTH_TOKEN "Es_VP5591FJEY7D8WckBo7BaaMf-1zs6"
+
+#define BLYNK_PRINT Serial
+// Enables debug prints on Serial Monitor
+/************** LIBRARIES **************/
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+/************** WIFI CREDENTIALS **************/
+char ssid[] = "Realme 8";
+// Must be 2.4 GHz
+char pass[] = "pragati10";
+// Case-sensitive
+/************** PIN DEFINITIONS **************/
+int ledPin
+= 2;
+// GPIO2 → On-board blue LED (active LOW)
+int relayPin = 0;
+// GPIO0 → Relay control (active HIGH)
+/************** BLYNK FUNCTIONS
+// V0 → LED Control
+BLYNK_WRITE(V0)
+{
+int state = param.asInt();
+digitalWrite(ledPin, !state);
+}
+**************/
+// V1 → Relay Control
+BLYNK_WRITE(V1)
+{
+int state = param.asInt();
+digitalWrite(relayPin, state);
+}
+// 1 = ON, 0 = OFF
+// Invert because LED is active-LOW
+// 1 = ON, 0 = OFF
+// Relay is active-HIGH
+/************** SETUP **************/
+void setup()
+{
+Serial.begin(115200);
+pinMode(ledPin, OUTPUT);
+pinMode(relayPin, OUTPUT);
+digitalWrite(ledPin, HIGH);
+// LED OFF initially
+digitalWrite(relayPin, LOW);
+
+// Relay OFF initially
+Serial.println("Connecting to WiFi...");
+Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+}
+/**************
+void loop()
+{
+Blynk.run();
+}
+MAIN LOOP
+**************/
+// Handles all Blynk tasks
+// Auto-connect to Blynk Cloud
+//Expt 4 D: ESP01 WiFi Module and Programming
+//Problem Statement: Interface WiFi ESP01/ESP8266 module with Arduino UNO/NANO and
+control
+//four LEDs/Relays connected to Arduino board through WiFi module Access Point (AP)
+//without a router using Blynk Cloud platform
+#define BLYNK_TEMPLATE_ID "TMPL3AS3iCYzQ"
+#define BLYNK_TEMPLATE_NAME "Pragati Patil"
+#define BLYNK_AUTH_TOKEN "vO7cSVGSG7IyZE8b_vJy-XeZUUWqtoS-"
+#include <ESP8266_Lib.h>
+#include <BlynkSimpleShieldEsp8266.h>
+#include <SoftwareSerial.h>
+char ssid[] = "Realme 8";
+char pass[] = "pragati10";
+SoftwareSerial EspSerial(2, 3);
+ESP8266 wifi(&EspSerial);
+// RX = 2, TX = 3 → UNO to ESP-01
+#define LED1 4
+#define LED2 5
+#define LED3 6
+#define LED4 7
+BLYNK_WRITE(V0) { digitalWrite(LED1, param.asInt()); }
+BLYNK_WRITE(V1) { digitalWrite(LED2, param.asInt()); }
+BLYNK_WRITE(V2) { digitalWrite(LED3, param.asInt()); }
+BLYNK_WRITE(V3) { digitalWrite(LED4, param.asInt()); }
+void setup() {
+pinMode(LED1, OUTPUT);
+
+pinMode(LED2, OUTPUT);
+pinMode(LED3, OUTPUT);
+pinMode(LED4, OUTPUT);
+digitalWrite(LED1, LOW);
+digitalWrite(LED2, LOW);
+digitalWrite(LED3, LOW);
+digitalWrite(LED4, LOW);
+Serial.begin(9600);
+EspSerial.begin(115200); // ESP AT firmware baud
+Blynk.begin(BLYNK_AUTH_TOKEN, wifi, ssid, pass);
+}
+void loop() {
+Blynk.run();
+}
+
+
