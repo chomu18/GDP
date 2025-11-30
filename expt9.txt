@@ -1,0 +1,220 @@
+// Expt 9 : Raspberry Pi and Web Server using Flask
+#app.py
+from flask import Flask, render_template, jsonify, request
+import RPi.GPIO as GPIO
+import atexit
+app = Flask(__name__)
+# GPIO setup (BCM mode)
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+# Define LED pins (BCM)
+LED_PINS = {
+"led1": 13,
+"led2": 19,
+"led3": 26
+}
+# initialize pins as outputs and set LOW
+LED_STATE = {}
+for name, pin in LED_PINS.items():
+GPIO.setup(pin, GPIO.OUT)
+GPIO.output(pin, GPIO.LOW)
+LED_STATE[name] = False
+def cleanup():
+GPIO.cleanup()
+# Register cleanup on exit
+atexit.register(cleanup)
+@app.route("/")
+def index():
+# Replace the details below as required
+student = {
+"name": "Pragati Patil",
+"roll": "311047",
+"prn": "22311478",
+"experiment": "Expt 9: IoT based Web Controlled Home Automation using
+Raspberry Pi"
+}
+college_name = "Vishwakarma Institute of Information Technology, Pune"
+return render_template("main.html",
+student=student,
+college_name=college_name,
+led_state=LED_STATE)
+@app.route("/api/state", methods=["GET"])
+def get_state():
+"""Return JSON of current LED states."""
+return jsonify(LED_STATE)
+@app.route("/api/toggle", methods=["POST"])
+def toggle_led():
+"""
+Toggle or set a led state.
+
+POST JSON: { "led": "led1", "state": true }
+# state optional — if omitted, it
+toggles
+"""
+data = request.get_json() or {}
+led = data.get("led")
+if led not in LED_PINS:
+return jsonify({"error": "unknown led"}), 400
+requested = data.get("state")
+if requested is None:
+# toggle
+new_state = not LED_STATE[led]
+else:
+new_state = bool(requested)
+GPIO.output(LED_PINS[led], GPIO.HIGH if new_state else GPIO.LOW)
+LED_STATE[led] = new_state
+return jsonify({led: LED_STATE[led]})
+if __name__ == "__main__":
+# listen on all interfaces so other devices on LAN can reach the Pi
+app.run(host="0.0.0.0", port=5000, debug=False)
+// Expt 9 : Raspberry Pi and Web Server using Flask
+// Name
+: Pragati Patil
+// Roll No.: 311047
+// PRN
+: 22311478
+// DOP
+: 14th October 2025
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>{{ student.experiment }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+<div class="left">
+<img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"
+class="logo">
+</div>
+<div class="center">
+<h1>{{ college_name }}</h1>
+<h2>{{ student.experiment }}</h2>
+</div>
+<div class="right">
+<div class="student-info">
+<div><strong>Name:</strong> {{ student.name }}</div>
+
+<div><strong>Roll No.:</strong> {{ student.roll }}</div>
+<div><strong>PRN:</strong> {{ student.prn }}</div>
+</div>
+</div>
+</header>
+<main class="content">
+<section class="controls">
+<h3>LED Control Panel</h3>
+<div class="led-grid">
+<div class="led-card" id="card-led1">
+<h4>LED 1</h4>
+<div class="status" id="status-led1">OFF</div>
+<div class="buttons">
+<button onclick="setLED('led1', true)">ON</button>
+<button onclick="setLED('led1', false)">OFF</button>
+<button onclick="toggleLED('led1')">TOGGLE</button>
+</div>
+</div>
+<div class="led-card" id="card-led2">
+<h4>LED 2</h4>
+<div class="status" id="status-led2">OFF</div>
+<div class="buttons">
+<button onclick="setLED('led2', true)">ON</button>
+<button onclick="setLED('led2', false)">OFF</button>
+<button onclick="toggleLED('led2')">TOGGLE</button>
+</div>
+</div>
+<div class="led-card" id="card-led3">
+<h4>LED 3</h4>
+<div class="status" id="status-led3">OFF</div>
+<div class="buttons">
+<button onclick="setLED('led3', true)">ON</button>
+<button onclick="setLED('led3', false)">OFF</button>
+<button onclick="toggleLED('led3')">TOGGLE</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="foot">
+<small>Student: {{ student.name }} | Roll No: {{ student.roll }} | Experiment:
+{{ student.experiment }}</small>
+</footer>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+// script.js
+async function refreshStates() {
+
+try {
+const resp = await fetch('/api/state');
+const states = await resp.json();
+['led1','led2','led3'].forEach(led => {
+updateStatus(led, states[led]);
+});
+} catch (e) {
+console.error('Failed to fetch states', e);
+}
+}
+function updateStatus(led, val) {
+const el = document.getElementById('status-' + led);
+if (!el) return;
+el.textContent = val ? 'ON' : 'OFF';
+el.style.background = val ? '#e6ffea' : '#ffeeee';
+}
+async function setLED(led, state) {
+try {
+const resp = await fetch('/api/toggle', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ led: led, state: state })
+});
+const data = await resp.json();
+if (data[led] !== undefined) updateStatus(led, data[led]);
+} catch (e) {
+console.error('Failed to set LED', e);
+}
+}
+async function toggleLED(led) {
+try {
+const resp = await fetch('/api/toggle', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ led: led }) // no state => toggle at server
+});
+const data = await resp.json();
+if (data[led] !== undefined) updateStatus(led, data[led]);
+} catch (e) {
+console.error('toggle failed', e);
+}
+}
+// refresh states periodically (and on load)
+window.addEventListener('load', () => {
+refreshStates();
+setInterval(refreshStates, 3000);
+});
+/* style.css */
+
+body { font-family: Arial, Helvetica, sans-serif; margin:0; color:#222;
+background:#f5f6fb; }
+.topbar { display:flex; align-items:center; justify-content:space-between;
+padding:12px 20px; background:#0b3b66; color:white; }
+.topbar .logo { height:60px; }
+.topbar .center { text-align:center; }
+.topbar h1 { margin:0; font-size:20px; }
+.topbar h2 { margin:0; font-size:14px; font-weight:400; opacity:0.9; }
+.student-info { text-align:right; font-size:13px; }
+.content { padding:20px; max-width:1000px; margin: 20px auto; }
+.controls h3 { margin-bottom:12px; }
+.led-grid { display:flex; gap:16px; flex-wrap:wrap; }
+.led-card { background:white; padding:16px; border-radius:10px; box-shadow: 0 6px
+18px rgba(0,0,0,0.06); width:280px; }
+.led-card h4 { margin-top:0; }
+.status { font-weight:bold; margin:10px 0; padding:8px; border-radius:6px;
+background:#eee; width:fit-content; }
+.buttons button { margin-right:6px; padding:8px 12px; border-radius:6px; border:
+none; cursor:pointer; }
+.buttons button:hover { opacity:0.9; }
+.foot { text-align:center; padding:12px; color:#555; margin-top:20px; }
+
+
